@@ -13,25 +13,27 @@ GMAIL_USER = 'EDIT_ME' # The emails originate from here
 # See https://support.google.com/mail/answer/1173270?hl=en
 GMAIL_PASSWORD = 'EDIT ME'
 
-TARGET_EMAIL = 'EDIT ME' # Where the new apartments should be sent
+TARGET_EMAILS = [
+    'EDIT ME' # Where the new apartments should be sent
+]
 
 DBA_URL = 'EDIT ME' # For example, http://www.dba.dk/boliger/andelsbolig/andelslejligheder/vaerelser-3/?soeg=andelsbolig&vaerelser=4&vaerelser=5&vaerelser=6&boligarealkvm=(70-)&sort=listingdate-desc&pris=(1500000-2499999)&pris=(1000000-1499999)&soegfra=1060&radius=5
 BOLIGA_URL = 'EDIT ME' # For example, http://www.boliga.dk/soeg/resultater/a194d60c-e272-4c09-a7fd-899763577c58?sort=liggetid-a')
 
 
 class User(object):
-    def __init__(self, email, dba_url, boliga_url=None):
-        self.email = email
+    def __init__(self, email_recipients, dba_url, boliga_url=None):
+        self.email_recipients = email_recipients
         self.dba_url = dba_url
         self.boliga_url = boliga_url
         self.seen_urls = set()
         self.first_run = True
 
-def send_email(headline, url, recipient):
+def send_email(headline, url, recipients):
     smtp_obj = smtplib.SMTP_SSL('smtp.gmail.com', 465) # Change if not using gmail
     smtp_obj.login(GMAIL_USER, GMAIL_PASSWORD)
     FROM = GMAIL_USER
-    TO = [recipient] #must be a list
+    TO = recipients
     SUBJECT = headline
     TEXT = url
     
@@ -70,12 +72,12 @@ def crawl_boliga(user):
 def process_property(headline, url, user):
     if url not in user.seen_urls:
         if not user.first_run:
-            send_email(headline, url, user.email)
+            send_email(headline, url, user.email_recipients)
         user.seen_urls.add(url)
         print 'Property found: %s - %s' % (headline, url)
 
 def main():
-    user = User(email=TARGET_EMAIL,
+    user = User(email_recipients=TARGET_EMAILS,
                 dba_url=DBA_URL,
                 boliga_url=BOLIGA_URL)
 
