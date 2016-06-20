@@ -25,6 +25,7 @@ class User(object):
         self.dba_url = dba_url
         self.boliga_url = boliga_url
         self.seen_urls = set()
+        self.first_run = True
 
 def send_email(headline, url, recipient):
     smtp_obj = smtplib.SMTP_SSL('smtp.gmail.com', 465) # Change if not using gmail
@@ -52,9 +53,7 @@ def crawl_dba(user):
         headline = a.contents[0].encode('utf-8')
         if headline is None:
             headline = link
-        if link not in user.seen_urls:
-            send_email(headline, link, user.email)
-            user.seen_urls.add(link)
+        process_property(headline, link, user)
 
 def crawl_boliga(user):
     session = requests.Session()
@@ -66,9 +65,13 @@ def crawl_boliga(user):
         link_element = listing.findAll('a')[1]
         headline = link_element['title'].encode('utf-8')
         url = ('http://www.boliga.dk' + link_element['href']).encode('utf-8')
-        if url not in user.seen_urls:
+        process_property(headline, url, user)
+
+def process_property(headline, url, user):
+    if url not in user.seen_urls:
+        if not user.first_run:
             send_email(headline, url, user.email)
-            user.seen_urls.add(url)
+        user.seen_urls.add(url)
 
 def main():
     user = User(email=TARGET_EMAIL,
@@ -79,6 +82,8 @@ def main():
         try:
             crawl_dba(user)
             crawl_boliga(user)
+            if user.first_run:
+                user.first_run = False
             time.sleep(REFRESH_INTERVAL_SECONDS)
         except Exception as e:
             print e
