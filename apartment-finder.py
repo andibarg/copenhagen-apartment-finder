@@ -16,20 +16,22 @@ GMAIL_PASSWORD = 'EDIT ME'
 TARGET_EMAILS = [
     'EDIT ME' # Where the new apartments should be sent
 ]
+BCC_TARGETS = True # Whether or not the recipients should be bcc'ed
 
 DBA_URL = 'EDIT ME' # For example, http://www.dba.dk/boliger/andelsbolig/andelslejligheder/vaerelser-3/?soeg=andelsbolig&vaerelser=4&vaerelser=5&vaerelser=6&boligarealkvm=(70-)&sort=listingdate-desc&pris=(1500000-2499999)&pris=(1000000-1499999)&soegfra=1060&radius=5
 BOLIGA_URL = 'EDIT ME' # For example, http://www.boliga.dk/soeg/resultater/a194d60c-e272-4c09-a7fd-899763577c58?sort=liggetid-a')
 
 
 class User(object):
-    def __init__(self, email_recipients, dba_url, boliga_url=None):
+    def __init__(self, email_recipients, dba_url, boliga_url=None, bcc_recipients=False):
         self.email_recipients = email_recipients
+        self.bcc_recipients = bcc_recipients
         self.dba_url = dba_url
         self.boliga_url = boliga_url
         self.seen_urls = set()
         self.first_run = True
 
-def send_email(headline, url, recipients):
+def send_email(headline, url, recipients, bcc):
     smtp_obj = smtplib.SMTP_SSL('smtp.gmail.com', 465) # Change if not using gmail
     smtp_obj.login(GMAIL_USER, GMAIL_PASSWORD)
     FROM = GMAIL_USER
@@ -38,8 +40,12 @@ def send_email(headline, url, recipients):
     TEXT = url
     
     # Prepare actual message
-    message = """\From: %s\nTo: %s\nSubject: %s\n\n%s
-    """ % (FROM, ", ".join(TO), SUBJECT, TEXT)
+    message = "From: %s\r\n" % FROM
+    if not bcc:
+        message += "To: %s\r\n" % ", ".join(TO)
+    message += "Subject: %s\r\n" % SUBJECT
+    message += "\r\n"
+    message += TEXT
     smtp_obj.sendmail(FROM, TO, message)
     smtp_obj.close()
 
@@ -72,14 +78,15 @@ def crawl_boliga(user):
 def process_property(headline, url, user):
     if url not in user.seen_urls:
         if not user.first_run:
-            send_email(headline, url, user.email_recipients)
+            send_email(headline, url, user.email_recipients, user.bcc_recipients)
         user.seen_urls.add(url)
         print 'Property found: %s - %s' % (headline, url)
 
 def main():
     user = User(email_recipients=TARGET_EMAILS,
                 dba_url=DBA_URL,
-                boliga_url=BOLIGA_URL)
+                boliga_url=BOLIGA_URL,
+                bcc_recipients=BCC_TARGETS)
 
     while True:
         try:
