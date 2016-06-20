@@ -10,6 +10,7 @@ from BeautifulSoup import BeautifulSoup
 
 class Watcher(object):
     def __init__(self, data):
+        self.name = data['name']
         self.boliga_url = data['boliga_url']
         self.dba_url = data['dba_url']
         self.gmail_sender = data['gmail_sender']
@@ -64,7 +65,7 @@ def process_property(headline, url, watcher):
         if not watcher.first_run:
             send_email(headline, url, watcher)
         watcher.seen_urls.add(url)
-        print 'Property found: %s - %s' % (headline, url)
+        print '%s -> Property found: %s - %s' % (watcher.name, headline, url)
 
 def main():
     config_filename = "config.yaml"
@@ -85,7 +86,7 @@ def main():
                 crawl_dba(watcher)
                 if watcher.first_run:
                     watcher.first_run = False
-                    print 'First run passed and fetched %d properties' % len(watcher.seen_urls)
+                    print '%s -> First run passed and fetched %d properties' % (watcher.name, len(watcher.seen_urls))
             time.sleep(refresh_interval)
         except Exception as e:
             print e

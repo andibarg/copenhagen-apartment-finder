@@ -4,6 +4,9 @@ refresh_interval_seconds: <interval in seconds>
 # list of watchers containing info on which urls to scrape and to whom the emails should be sent
 watchers:
   -
+    # name only used for logging purposes
+    name: <name of the watcher>
+
     # urls to scap matching search criteria
     # for example:
     # boliga_url: http://www.boliga.dk/soeg/resultater/a194d60c-e272-4c09-a7fd-899763577c58?sort=liggetid-a
