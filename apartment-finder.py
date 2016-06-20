@@ -47,11 +47,10 @@ def crawl_dba(user):
     soup = BeautifulSoup(r.text, convertEntities=BeautifulSoup.HTML_ENTITIES)
     listings = soup.findAll('tr', 'dbaListing')
     for listing in listings:
-        link = listing.find('a', 'listingLink')['href'].encode('utf-8')
-        headline = listing.find('span', 'headline')
-        if headline is not None:
-            headline = headline.text.encode('utf-8')
-        else:
+        a = listing.findAll('a', 'listingLink')[1]
+        link = a['href'].encode('utf-8')
+        headline = a.contents[0].encode('utf-8')
+        if headline is None:
             headline = link
         if link not in user.seen_urls:
             send_email(headline, link, user.email)
