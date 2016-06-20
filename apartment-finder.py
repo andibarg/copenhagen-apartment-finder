@@ -72,6 +72,7 @@ def process_property(headline, url, user):
         if not user.first_run:
             send_email(headline, url, user.email)
         user.seen_urls.add(url)
+        print 'Property found: %s - %s' % (headline, url)
 
 def main():
     user = User(email=TARGET_EMAIL,
@@ -83,6 +84,7 @@ def main():
             crawl_dba(user)
             crawl_boliga(user)
             if user.first_run:
+                print 'First run passed and fetched %d properties' % len(user.seen_urls)
                 user.first_run = False
             time.sleep(REFRESH_INTERVAL_SECONDS)
         except Exception as e:
