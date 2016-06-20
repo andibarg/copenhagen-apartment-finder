@@ -5,48 +5,32 @@
 import time
 import smtplib
 import requests
+import yaml
 from BeautifulSoup import BeautifulSoup
 
-REFRESH_INTERVAL_SECONDS = 30
-GMAIL_USER = 'EDIT_ME' # The emails originate from here
-# Note - when using gmail from an external app, you need to generate an app-specific password
-# See https://support.google.com/mail/answer/1173270?hl=en
-GMAIL_PASSWORD = 'EDIT ME'
-
-TARGET_EMAILS = [
-    'EDIT ME' # Where the new apartments should be sent
-]
-BCC_TARGETS = True # Whether or not the recipients should be bcc'ed
-
-DBA_URL = 'EDIT ME' # For example, http://www.dba.dk/boliger/andelsbolig/andelslejligheder/vaerelser-3/?soeg=andelsbolig&vaerelser=4&vaerelser=5&vaerelser=6&boligarealkvm=(70-)&sort=listingdate-desc&pris=(1500000-2499999)&pris=(1000000-1499999)&soegfra=1060&radius=5
-BOLIGA_URL = 'EDIT ME' # For example, http://www.boliga.dk/soeg/resultater/a194d60c-e272-4c09-a7fd-899763577c58?sort=liggetid-a')
-
-
 class Watcher(object):
-    def __init__(self, email_recipients, dba_url, boliga_url=None, bcc_recipients=False):
-        self.email_recipients = email_recipients
-        self.bcc_recipients = bcc_recipients
-        self.dba_url = dba_url
-        self.boliga_url = boliga_url
+    def __init__(self, data):
+        self.boliga_url = data['boliga_url']
+        self.dba_url = data['dba_url']
+        self.gmail_sender = data['gmail_sender']
+        self.gmail_password = data['gmail_password']
+        self.email_recipients = data['email_recipients']
+        self.should_bcc_recipients = data['should_bcc_recipients']
         self.seen_urls = set()
         self.first_run = True
 
-def send_email(headline, url, recipients, bcc):
+def send_email(headline, url, watcher):
     smtp_obj = smtplib.SMTP_SSL('smtp.gmail.com', 465) # Change if not using gmail
-    smtp_obj.login(GMAIL_USER, GMAIL_PASSWORD)
-    FROM = GMAIL_USER
-    TO = recipients
-    SUBJECT = headline
-    TEXT = url
-    
+    smtp_obj.login(watcher.gmail_sender, watcher.gmail_password)
+
     # Prepare actual message
-    message = "From: %s\r\n" % FROM
-    if not bcc:
-        message += "To: %s\r\n" % ", ".join(TO)
-    message += "Subject: %s\r\n" % SUBJECT
+    message = "From: %s\r\n" % watcher.gmail_sender
+    if not watcher.should_bcc_recipients:
+        message += "To: %s\r\n" % ", ".join(watcher.email_recipients)
+    message += "Subject: %s\r\n" % headline
     message += "\r\n"
-    message += TEXT
-    smtp_obj.sendmail(FROM, TO, message)
+    message += url
+    smtp_obj.sendmail(watcher.gmail_sender, watcher.email_recipients, message)
     smtp_obj.close()
 
 def crawl_dba(watcher):
@@ -78,26 +62,31 @@ def crawl_boliga(watcher):
 def process_property(headline, url, watcher):
     if url not in watcher.seen_urls:
         if not watcher.first_run:
-            send_email(headline, url, watcher.email_recipients, watcher.bcc_recipients)
+            send_email(headline, url, watcher)
         watcher.seen_urls.add(url)
         print 'Property found: %s - %s' % (headline, url)
 
 def main():
-    watcher = Watcher(
-        email_recipients=TARGET_EMAILS,
-        dba_url=DBA_URL,
-        boliga_url=BOLIGA_URL,
-        bcc_recipients=BCC_TARGETS
-    )
+    config_filename = "config.yaml"
+    with open(config_filename, 'r') as config_data:
+        try:
+            config = yaml.load(config_data)
+        except yaml.YAMLError as e:
+            print(e)
+            raise SystemExit('Unable to open config file %s: ERROR: %s' % (config_filename, e))
+
+    refresh_interval = config['refresh_interval_seconds']
+    watchers = [Watcher(watcher) for watcher in config['watchers']]
 
     while True:
         try:
-            crawl_dba(watcher)
-            crawl_boliga(watcher)
-            if watcher.first_run:
-                print 'First run passed and fetched %d properties' % len(watcher.seen_urls)
-                watcher.first_run = False
-            time.sleep(REFRESH_INTERVAL_SECONDS)
+            for watcher in watchers:
+                crawl_boliga(watcher)
+                crawl_dba(watcher)
+                if watcher.first_run:
+                    watcher.first_run = False
+                    print 'First run passed and fetched %d properties' % len(watcher.seen_urls)
+            time.sleep(refresh_interval)
         except Exception as e:
             print e
 

@@ -2,7 +2,7 @@
 Scrape DBA and Boliga periodically for newly-listed apartments in Copenhagen, emailing you when one matches your search criteria.
 
 ## How to run
-- Configure the variables at the top of the script (GMAIL_USER, etc)
+- Customize the `config.yaml` file with your search criteria
 - `python setup.py install`
 - `python apartment-finder.py`
 

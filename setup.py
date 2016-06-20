@@ -10,7 +10,8 @@ setup(
     packages=find_packages(),
     install_requires=[
         'BeautifulSoup==3.2.1',
-        'Requests==2.9.1'
+        'Requests==2.9.1',
+        'PyYAML==3.11'
     ],
     classifiers=[
         "Programming Language :: Python",
