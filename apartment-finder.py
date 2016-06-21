@@ -17,6 +17,7 @@ class Watcher(object):
         self.gmail_password = data.get('gmail_password')
         self.email_recipients = data.get('email_recipients')
         self.should_bcc_recipients = data.get('should_bcc_recipients', False)
+        self.trigger_emails_on_first_run = data.get('trigger_emails_on_first_run', False)
         self.seen_urls = set()
         self.first_run = True
 
@@ -62,7 +63,7 @@ def crawl_boliga(watcher):
 
 def process_property(headline, url, watcher):
     if url not in watcher.seen_urls:
-        if not watcher.first_run:
+        if not watcher.first_run or watcher.trigger_emails_on_first_run:
             send_email(headline, url, watcher)
         watcher.seen_urls.add(url)
         print '%s -> Property found: %s - %s' % (watcher.name, headline, url)

@@ -29,3 +29,7 @@ watchers:
     # whether or not the recipients should be bcc'ed
     should_bcc_recipients: <yes or no>
     # optional - defaut value: no
+
+    # whether or not the emails should be sent out on the first run
+    # optional - defaut value: no
+    trigger_emails_on_first_run: <yes or no>
