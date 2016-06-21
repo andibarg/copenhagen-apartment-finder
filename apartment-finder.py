@@ -66,7 +66,7 @@ def process_property(headline, url, watcher):
         if not watcher.first_run or watcher.trigger_emails_on_first_run:
             send_email(headline, url, watcher)
         watcher.seen_urls.add(url)
-        print '%s -> Property found: %s - %s' % (watcher.name, headline, url)
+        print '%s -> Item found: %s - %s' % (watcher.name, headline, url)
 
 def main():
     config_filename = "config.yaml"
@@ -87,7 +87,7 @@ def main():
                 crawl_dba(watcher)
                 if watcher.first_run:
                     watcher.first_run = False
-                    print '%s -> First run passed and fetched %d properties' % (watcher.name, len(watcher.seen_urls))
+                    print '%s -> First run passed and fetched %d items' % (watcher.name, len(watcher.seen_urls))
             time.sleep(refresh_interval)
         except Exception as e:
             print e
