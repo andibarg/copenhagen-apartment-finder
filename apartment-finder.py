@@ -10,13 +10,13 @@ from BeautifulSoup import BeautifulSoup
 
 class Watcher(object):
     def __init__(self, data):
-        self.name = data['name']
-        self.boliga_url = data['boliga_url']
-        self.dba_url = data['dba_url']
-        self.gmail_sender = data['gmail_sender']
-        self.gmail_password = data['gmail_password']
-        self.email_recipients = data['email_recipients']
-        self.should_bcc_recipients = data['should_bcc_recipients']
+        self.name = data.get('name')
+        self.boliga_url = data.get('boliga_url')
+        self.dba_url = data.get('dba_url')
+        self.gmail_sender = data.get('gmail_sender')
+        self.gmail_password = data.get('gmail_password')
+        self.email_recipients = data.get('email_recipients')
+        self.should_bcc_recipients = data.get('should_bcc_recipients', False)
         self.seen_urls = set()
         self.first_run = True
 
@@ -76,7 +76,7 @@ def main():
             print(e)
             raise SystemExit('Unable to open config file %s: ERROR: %s' % (config_filename, e))
 
-    refresh_interval = config['refresh_interval_seconds']
+    refresh_interval = config.get('refresh_interval_seconds', 600)
     watchers = [Watcher(watcher) for watcher in config['watchers']]
 
     while True:
