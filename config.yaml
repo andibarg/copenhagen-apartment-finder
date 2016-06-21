@@ -1,6 +1,6 @@
 # how often the content should be fetched given in seconds
-refresh_interval_seconds: <interval in seconds>
 # optional - defaut value: 600
+refresh_interval_seconds: <interval in seconds>
 
 # list of watchers containing info on which urls to scrape and to whom the emails should be sent
 watchers:
@@ -27,8 +27,8 @@ watchers:
       - <recipient 2 email address>
 
     # whether or not the recipients should be bcc'ed
-    should_bcc_recipients: <yes or no>
     # optional - defaut value: no
+    should_bcc_recipients: <yes or no>
 
     # whether or not the emails should be sent out on the first run
     # optional - defaut value: no
