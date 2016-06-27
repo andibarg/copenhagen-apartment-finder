@@ -87,7 +87,6 @@ def main():
                 crawl_dba(watcher)
                 if watcher.first_run:
                     watcher.first_run = False
-                    print '%s -> First run passed and fetched %d items' % (watcher.name, len(watcher.seen_urls))
             time.sleep(refresh_interval)
         except Exception as e:
             print e
