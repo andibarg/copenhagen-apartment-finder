@@ -29,7 +29,7 @@ def send_email(headline, url, watcher):
     message = "From: %s\r\n" % watcher.gmail_sender
     if not watcher.should_bcc_recipients:
         message += "To: %s\r\n" % ", ".join(watcher.email_recipients)
-    message += "Subject: %s\r\n" % headline
+    message += "Subject: [%s] %s\r\n" % (watcher.name, headline)
     message += "\r\n"
     message += url
     smtp_obj.sendmail(watcher.gmail_sender, watcher.email_recipients, message)
