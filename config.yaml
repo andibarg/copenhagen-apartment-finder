@@ -10,7 +10,7 @@ watchers:
 
     # urls to scap matching search criteria
     # for example:
-    # boliga_url: http://www.boliga.dk/soeg/resultater/a194d60c-e272-4c09-a7fd-899763577c58?sort=liggetid-a
+    # boliga_url: https://www.selvsalg.dk/resultater?q=K%C3%B8benhavn&type=5&type=13&type=15&show=0&minrooms=3&maxrooms=&min=500000&max=&minsize=&maxsize=&view=list
     # dba_url: http://www.dba.dk/boliger/andelsbolig/andelslejligheder/vaerelser-3/?soeg=andelsbolig&vaerelser=4&vaerelser=5&vaerelser=6&boligarealkvm=(70-)&sort=listingdate-desc&pris=(1500000-2499999)&pris=(1000000-1499999)&soegfra=1060&radius=5
     boliga_url: <boliga url search criteria from: http://www.boliga.dk>
     dba_url: <dba url search criteria from: http://www.dba.dk>
