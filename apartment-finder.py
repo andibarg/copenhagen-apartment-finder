@@ -4,9 +4,10 @@
 
 import time
 import smtplib
-import requests
+import urllib.request
 import yaml
-from BeautifulSoup import BeautifulSoup
+from email.mime.text import MIMEText
+from bs4 import BeautifulSoup
 
 class Watcher(object):
     def __init__(self, data):
@@ -26,39 +27,38 @@ def send_email(headline, url, watcher):
     smtp_obj.login(watcher.gmail_sender, watcher.gmail_password)
 
     # Prepare actual message
-    message = "From: %s\r\n" % watcher.gmail_sender
+    body = "%s\r\n\r\n%s" % (url,headline)
+    msg = MIMEText(body.encode('utf-8'), _charset='utf-8')
+    msg['Subject'] = watcher.name
+    msg['From'] = watcher.gmail_sender
     if not watcher.should_bcc_recipients:
-        message += "To: %s\r\n" % ", ".join(watcher.email_recipients)
-    message += "Subject: [%s] %s\r\n" % (watcher.name, headline)
-    message += "\r\n"
-    message += url
-    smtp_obj.sendmail(watcher.gmail_sender, watcher.email_recipients, message)
+        msg['To'] = ', '.join(watcher.email_recipients)
+
+    # Sending email
+    smtp_obj.sendmail(watcher.gmail_sender, watcher.email_recipients, msg.as_string())
     smtp_obj.close()
 
 def crawl_dba(watcher):
-    session = requests.Session()
-    session.encoding = 'utf-8'
-    r = session.get(watcher.dba_url)
-    soup = BeautifulSoup(r.text, convertEntities=BeautifulSoup.HTML_ENTITIES)
+    # Query website and get html
+    html_doc = urllib.request.urlopen(watcher.dba_url)
+    soup = BeautifulSoup(html_doc,'html.parser')
     listings = soup.findAll('tr', 'dbaListing')
     for listing in listings:
         a = listing.findAll('a', 'listingLink')[1]
-        link = a['href'].encode('utf-8')
-        headline = a.contents[0].encode('utf-8')
+        link = a['href']
+        headline = a.contents[0]
         if headline is None:
             headline = link
         process_property(headline, link, watcher)
 
 def crawl_boliga(watcher):
-    session = requests.Session()
-    session.encoding = 'utf-8'
-    r = session.get(watcher.boliga_url)
-    soup = BeautifulSoup(r.text.encode('utf-8'), convertEntities=BeautifulSoup.HTML_ENTITIES)
-    listings = soup.findAll('tr', 'pRow')
+    html_doc = urllib.request.urlopen(watcher.boliga_url)
+    soup = BeautifulSoup(html_doc, 'html.parser')
+    listings = soup.findAll('div', 'body')
     for listing in listings:
-        link_element = listing.findAll('a')[1]
-        headline = link_element['title'].encode('utf-8')
-        url = ('http://www.boliga.dk' + link_element['href']).encode('utf-8')
+        link_element = listing.find('a')
+        headline = link_element.get_text()
+        url = ('https://www.selvsalg.dk' + link_element.get('href'))
         process_property(headline, url, watcher)
 
 def process_property(headline, url, watcher):
@@ -66,7 +66,7 @@ def process_property(headline, url, watcher):
         if not watcher.first_run or watcher.trigger_emails_on_first_run:
             send_email(headline, url, watcher)
         watcher.seen_urls.add(url)
-        print '%s -> Item found: %s - %s' % (watcher.name, headline, url)
+        print('%s -> Item found: %s' % (watcher.name, url))
 
 def main():
     config_filename = "config.yaml"
@@ -87,8 +87,9 @@ def main():
                 crawl_dba(watcher)
                 if watcher.first_run:
                     watcher.first_run = False
+                print('Waiting ...')
             time.sleep(refresh_interval)
         except Exception as e:
-            print e
+            print(e)
 
 main()
