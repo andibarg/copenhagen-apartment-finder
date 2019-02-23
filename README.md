@@ -2,7 +2,7 @@
 Scrape DBA and Boliga periodically for newly-listed apartments in Copenhagen, emailing you when one matches your search criteria.
 
 ## Disclaimer
-This script is not to be used without permissions from DBA and Boliga. You should always comply with the terms and conditions of these websites.
+This script is not to be used without permissions from DBA and Boliga. You should always comply with the terms of use of these websites.
 
 ## How to run
 - Customize the `config.yaml` file with your search criteria
